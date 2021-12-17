@@ -25,7 +25,8 @@ from flask import request, render_template, redirect, url_for
 from pylon.core.tools import log  # pylint: disable=E0611,E0401
 from pylon.core.tools import module  # pylint: disable=E0611,E0401
 
-from .components import render_toggle
+from .components import render_toggle, render_integration_card, render_integration_create_modal
+from .models.integration_pd import IntegrationModel
 
 
 class Module(module.ModuleModel):
@@ -43,17 +44,28 @@ class Module(module.ModuleModel):
         #
         SECTION_NAME = 'scanners'
         #
+        self.context.slot_manager.register_callback(f"integration_card_{self.descriptor.name}", render_integration_card)
         self.context.slot_manager.register_callback(f"security_{SECTION_NAME}", render_toggle)
         #
-        from .rpc_worker import make_dusty_config
-        self.context.rpc_manager.register_function(
-            functools.partial(make_dusty_config, self.context),
-            name='dusty_config_zap',
+
+        self.context.rpc_manager.call.integrations_register_section(
+            name=SECTION_NAME,
+            integration_description='Manage integrations with scanners',
+            test_planner_description='Specify scanners to use. You may also set scanners in <a '
+                                     'href="/?chapter=Configuration&module=Integrations&page=all">Integrations</a> '
         )
 
         self.context.rpc_manager.call.integrations_register(
-            name='zap',
+            name=self.descriptor.name,
             section=SECTION_NAME,
+            settings_model=IntegrationModel,
+            integration_callback=render_integration_create_modal
+        )
+
+        from .rpc_worker import make_dusty_config
+        self.context.rpc_manager.register_function(
+            functools.partial(make_dusty_config, self.context),
+            name=f'dusty_config_{self.descriptor.name}',
         )
 
     def deinit(self):  # pylint: disable=R0201

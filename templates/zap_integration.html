@@ -1,0 +1,188 @@
+{% set integration_name = 'security_scanner_zap' %}
+{% set display_name = 'Zap' %}
+{% set show_test_connection = False %}
+
+{{ template_slot('integrations_default_add_button', payload={
+    'integration_name': integration_name,
+    'display_name': display_name,
+    'logo': '<img src="%s"></img>' | format(url_for('%s.static' | format(integration_name), filename='logo.svg'))
+}) | safe }}
+
+
+{% extends 'integrations:default_modal.html' %}
+{% block modal_body %}
+    <div class="form-group">
+        <div class="form-group">
+
+
+            <h9>Scan Types</h9>
+            <div class="form-check"
+                 :class="{ 'is-invalid': error.scan_types }"
+            >
+                <label class="mr-5">
+                    <input class="form-check-input" type="checkbox"
+                           :indeterminate="scan_types_indeterminate"
+                           @change="handle_select_all"
+                           :checked="scan_types.length === available_scan_types.length"
+                    >
+                    <h9>
+                        all
+                    </h9>
+                </label>
+                <label class="mr-5" v-for="st in available_scan_types" :key="st">
+                    <input class="form-check-input" type="checkbox"
+                           @change="e => handleScanTypeCheck(st, e.target.checked)"
+                           :checked="scan_types.includes(st)"
+                    >
+                    <h9>
+                        [[ st ]]
+                    </h9>
+                </label>
+            </div>
+            <div class="invalid-feedback">[[ error.scan_types ]]</div>
+        </div>
+
+        <div class="form-group form-row">
+            <div class="col-6">
+                <h9>Login</h9>
+                <p>
+                    <h13>Optional</h13>
+                </p>
+                <input type="text" class="form-control form-control-alternative"
+                       placeholder="User"
+                       v-model="auth_login"
+                       :class="{ 'is-invalid': error.auth_login }">
+                <div class="invalid-feedback">[[ error.auth_login ]]</div>
+            </div>
+            <div class="col-6">
+
+                <h9>Password</h9>
+                <p>
+                    <h13>Optional</h13>
+                </p>
+                <input type="password" class="form-control form-control-alternative"
+                       placeholder="Password"
+                       v-model="auth_password"
+                       :class="{ 'is-invalid': error.password }">
+                <div class="invalid-feedback">[[ error.password ]]</div>
+            </div>
+            <div class="col-12">
+                <h9>Auth script</h9>
+                <p>
+                    <h13>Optional</h13>
+                </p>
+                <textarea class="form-control"
+                          rows="7"
+                          placeholder="Auth script"
+                          v-model="auth_script"
+                          :class="{ 'is-invalid': error.auth_script }"
+                >
+                </textarea>
+                <div class="invalid-feedback">[[ error.auth_script ]]</div>
+            </div>
+        </div>
+
+        {#        <div class="form-check">#}
+        {#            <label>#}
+        {#                <input class="form-check-input" type="checkbox"#}
+        {#                       v-model="bind_all_interfaces">#}
+        {#                <h9>#}
+        {#                    Bind all interfaces#}
+        {#                </h9>#}
+        {#            </label>#}
+        {#        </div>#}
+        {#        <div class="form-check">#}
+        {#            <label>#}
+        {#                <input class="form-check-input" type="checkbox"#}
+        {#                       v-model="daemon_debug">#}
+        {#                <h9>#}
+        {#                    Daemon debug#}
+        {#                </h9>#}
+        {#            </label>#}
+        {#        </div>#}
+
+        <h9>Java options</h9>
+        <p>
+            <h13>Optional</h13>
+        </p>
+        <input type="text" class="form-control form-control-alternative"
+               placeholder="Java options"
+               v-model="java_options"
+               :class="{ 'is-invalid': error.java_options }">
+        <div class="invalid-feedback">[[ error.java_options ]]</div>
+
+        {#        <div class="form-check">#}
+        {#            <label>#}
+        {#                <input class="form-check-input" type="checkbox"#}
+        {#                       v-model="split_by_endpoint">#}
+        {#                <h9>#}
+        {#                    Split by endpoint#}
+        {#                </h9>#}
+        {#            </label>#}
+        {#        </div>#}
+        <div class="form-group form-row">
+            {#    <div class="form-row">#}
+            <div class="col-6">
+
+
+                <h9>Passive scan wait threshold</h9>
+                <p>
+                    <h13>Optional</h13>
+                </p>
+                <input type="number" class="form-control form-control-alternative"
+                       placeholder=""
+                       v-model="passive_scan_wait_threshold"
+                       :class="{ 'is-invalid': error.passive_scan_wait_threshold }"
+                >
+                <div class="invalid-feedback">[[ error.passive_scan_wait_threshold ]]</div>
+            </div>
+            <div class="col-6">
+                <h9>Passive scan wait limit</h9>
+                <p>
+                    <h13>Optional</h13>
+                </p>
+                <input type="number" class="form-control form-control-alternative"
+                       placeholder=""
+                       v-model="passive_scan_wait_limit"
+                       :class="{ 'is-invalid': error.passive_scan_wait_limit }"
+                >
+                <div class="invalid-feedback">[[ error.passive_scan_wait_limit ]]</div>
+            </div>
+            {#        </div>#}
+        </div>
+        {#        <h9>External zap daemon</h9>#}
+        {#        <p>#}
+        {#            <h13>Optional</h13>#}
+        {#        </p>#}
+        {#        <input type="text" class="form-control form-control-alternative"#}
+        {#               placeholder="Url"#}
+        {#               v-model="external_zap_daemon"#}
+        {#               :class="{ 'is-invalid': error.external_zap_daemon }">#}
+        {#        <div class="invalid-feedback">[[ error.external_zap_daemon ]]</div>#}
+        {##}
+        {#        <h9>External zap api key</h9>#}
+        {#        <p>#}
+        {#            <h13>Optional</h13>#}
+        {#        </p>#}
+        {#        <input type="text" class="form-control form-control-alternative"#}
+        {#               placeholder=""#}
+        {#               v-model="external_zap_api_key"#}
+        {#               :class="{ 'is-invalid': error.external_zap_api_key }">#}
+        {#        <div class="invalid-feedback">[[ error.external_zap_api_key ]]</div>#}
+        {##}
+        {#        <h9>Save intermediates to</h9>#}
+        {#        <p>#}
+        {#            <h13>Optional</h13>#}
+        {#        </p>#}
+        {#        <input type="text" class="form-control form-control-alternative"#}
+        {#               placeholder=""#}
+        {#               v-model="save_intermediates_to"#}
+        {#               :class="{ 'is-invalid': error.save_intermediates_to }">#}
+        {#        <div class="invalid-feedback">[[ error.save_intermediates_to ]]</div>#}
+
+
+    </div>
+{% endblock %}
+{% block modal_footer %}
+    <script src="{{ url_for('%s.static' | format(integration_name), filename='js/integrations.js') }}"></script>
+{% endblock %}
